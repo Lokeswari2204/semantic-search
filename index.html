@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Semantic Product Search</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+        }
+
+        .container {
+            width: 70%;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .status {
+            color: green;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1e40af;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .card {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 5px solid #2563eb;
+        }
+
+        .card h3 {
+            margin: 0 0 8px;
+        }
+
+        .meta {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .why {
+            margin-top: 10px;
+            background: #eef2ff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>🔍 Semantic Product Search</h2>
+
+    <div class="status">
+        Indexed 57,278 products
+    </div>
+
+    <div class="search-box">
+        <input id="query" placeholder="Search laptops, phones, gadgets...">
+        <button onclick="search()">Search</button>
+    </div>
+
+    <div class="results" id="results">
+        <p>Results will appear here...</p>
+    </div>
+
+</div>
+
+<script>
+async function search() {
+    const query = document.getElementById("query").value;
+    if (!query) return;
+
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "<p>🔄 Searching...</p>";
+
+    try {
+        const res = await fetch(
+            `http://127.0.0.1:8000/search?query=${encodeURIComponent(query)}`
+        );
+        const data = await res.json();
+
+        if (!data.results || data.results.length === 0) {
+            resultsDiv.innerHTML = "<p>No results found.</p>";
+            return;
+        }
+
+        let html = "";
+        data.results.forEach((item, index) => {
+            html += `
+                <div class="card">
+                    <h3>${index + 1}. ${item.name}</h3>
+                    <div class="meta">
+                        Brand: ${item.brand} |
+                        Rating: ${item.rating ?? "N/A"} ⭐ |
+                        Relevance: ${item.relevance}%
+                    </div>
+                    ${item.why_matched ? `
+                        <div class="why">
+                            <b>Why matched (AI):</b><br>
+                            ${item.why_matched}
+                        </div>
+                    ` : ""}
+                </div>
+            `;
+        });
+
+        resultsDiv.innerHTML = html;
+
+    } catch (err) {
+        resultsDiv.innerHTML = "<p style='color:red;'>Error fetching results</p>";
+        console.error(err);
+    }
+}
+</script>
+
+</body>
+</html>
